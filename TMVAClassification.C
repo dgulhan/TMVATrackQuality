@@ -184,6 +184,7 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    // factory->AddVariable( "myvar2 := var1-var2", "Expression 2", "", 'F' );
    // factory->AddVariable( "var3",                "Variable 3", "units", 'F' );
    // factory->AddVariable( "var4",                "Variable 4", "units", 'F' );
+
    factory->AddVariable( "abs(trkPtError/trkPt)", 'F' );
    factory->AddVariable( "Chi2DOF := trkChi2/trkNdof", 'F' );
    factory->AddVariable( "abs(trkDz1/trkDzError1)",'F' );
