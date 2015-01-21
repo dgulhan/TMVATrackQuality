@@ -449,8 +449,16 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
       factory->BookMethod( TMVA::Types::kBDT, "BDTG",
                            "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=2" );
 
-   if (Use["BDT"])  // Adaptive Boost
-      factory->BookMethod( TMVA::Types::kBDT, "BDT",
+   if (Use["BDT"] && algo==4)  // Adaptive Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDT4",
+                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+
+   if (Use["BDT"] && algo==5)  // Adaptive Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDT5",
+                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+
+   if (Use["BDT"] && algo==6)  // Adaptive Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDT6",
                            "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
 
    if (Use["BDTB"]) // Bagging
