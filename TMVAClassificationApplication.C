@@ -33,7 +33,7 @@
 
 using namespace TMVA;
 
-void TMVAClassificationApplication( TString myMethodList = "" ) 
+void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 ) 
 {   
 #ifdef __CINT__
    gROOT->ProcessLine( ".O0" ); // turn off optimization in CINT
@@ -152,7 +152,7 @@ void TMVAClassificationApplication( TString myMethodList = "" )
    reader->AddVariable( "trkEta", &tmva_trkEta );
    reader->AddVariable( "trkPhi", &tmva_trkPhi );
    reader->AddVariable( "trkPt",  &tmva_trkPt );
-   reader->AddVariable( "hiBin",  &tmva_hiBin );
+   //reader->AddVariable( "hiBin",  &tmva_hiBin );
 
    // Spectator variables declared in the training have to be added to the reader, too
    Float_t tmva_highPurity, tmva_trkNlayer;
@@ -172,13 +172,16 @@ void TMVAClassificationApplication( TString myMethodList = "" )
    h->hasTrackTree = true;   
 
    TH1::SetDefaultSumw2;
+ 
+   TH1D * ehighPurityRecoPt = new TH1D("ehighPurityRecoPt","",50,0,5);
+   TH1D * eBDTRecoPt = new TH1D("eBDTRecoPt","",50,0,5);
+   TH1D * ehighPurityRecoCent = new TH1D("ehighPurityRecoCent","",50,0,200);
+   TH1D * eBDTRecoCent = new TH1D("eBDTRecoCent","",50,0,200);
 
-   TH1D * recoPt = new TH1D("recoPt","",50,0,5);
-   TH1D * highPurityRecoPt = new TH1D("highPurityRecoPt","",50,0,5);
-   TH1D * BDTRecoPt = new TH1D("BDTRecoPt","",50,0,5);
-   TH1D * recoCent = new TH1D("recoCent","",50,0,200);
-   TH1D * highPurityRecoCent = new TH1D("highPurityRecoCent","",50,0,200);
-   TH1D * BDTRecoCent = new TH1D("BDTRecoCent","",50,0,200);
+   TH1D * fhighPurityRecoPt = new TH1D("fhighPurityRecoPt","",50,0,5);
+   TH1D * fBDTRecoPt = new TH1D("fBDTRecoPt","",50,0,5);
+   TH1D * fhighPurityRecoCent = new TH1D("fhighPurityRecoCent","",50,0,200);
+   TH1D * fBDTRecoCent = new TH1D("fBDTRecoCent","",50,0,200); 
 
    //event loop
    int nEntries = h->GetEntries();
@@ -186,12 +189,12 @@ void TMVAClassificationApplication( TString myMethodList = "" )
    {
      h->GetEntry(i);
      //hiBin for TMVA  
-     tmva_hiBin = h->evt.hiBin; 
-    
+     //tmva_hiBin = h->evt.hiBin; 
+
      //track loop
-     for(int j=1; j< h->track.nTrk; j++)     
+     for(int j=0; j< h->track.nTrk; j++)     
      { 
-       if(h->track.trkAlgo[j] != 5) continue;
+       if(h->track.trkAlgo[j] != algo) continue;
        
        //composite variables for TMVA
        tmva_ptError  = TMath::Abs(h->track.trkPtError[j]/h->track.trkPt[j]);  
@@ -205,29 +208,35 @@ void TMVAClassificationApplication( TString myMethodList = "" )
        tmva_trkPt  = h->track.trkPt[j];
        tmva_trkNHit = h->track.trkNHit[j];
 
-       if(!(h->track.trkFake[j]))
-       {
-         recoPt->Fill(h->track.trkPt[j]);      
-         recoCent->Fill(h->evt.hiBin);
-       }
-
        if(!(h->track.trkFake[j]) && h->track.highPurity[j])
        {
-         highPurityRecoPt->Fill(h->track.trkPt[j]);
-         highPurityRecoCent->Fill(h->evt.hiBin);
+         ehighPurityRecoPt->Fill(h->track.trkPt[j]);
+         ehighPurityRecoCent->Fill(h->evt.hiBin);
+       }
+       if(h->track.trkFake[j] && h->track.highPurity[j])
+       {
+         fhighPurityRecoPt->Fill(h->track.trkPt[j]);
+         fhighPurityRecoCent->Fill(h->evt.hiBin);
        }
 
-       double tmvaResponse =  reader->EvaluateMVA("BDT5");
+       double tmvaResponse =  reader->EvaluateMVA(Form("BDT%d",algo));
+       if(i == 0 and j ==0) std::cout << Form("Using BDT%d", algo) << std::endl;
        if(!(h->track.trkFake[j]) && tmvaResponse > -0.01)
        {
-         BDTRecoPt->Fill(h->track.trkPt[j]);
-         BDTRecoCent->Fill(h->evt.hiBin);
+         eBDTRecoPt->Fill(h->track.trkPt[j]);
+         eBDTRecoCent->Fill(h->evt.hiBin);
        }
+       if(h->track.trkFake[j] && tmvaResponse > -0.01)
+       {
+         fBDTRecoPt->Fill(h->track.trkPt[j]);
+         fBDTRecoCent->Fill(h->evt.hiBin);
+       } 
      }
    }
   
-  highPurityRecoPt->Divide(recoPt);
-  highPurityRecoCent->Divide(recoCent);
-  BDTRecoPt->Divide(recoPt);
-  BDTRecoCent->Divide(recoCent);
+  eBDTRecoPt->Divide(ehighPurityRecoPt);
+  eBDTRecoCent->Divide(ehighPurityRecoCent);
+
+  fBDTRecoPt->Divide(fhighPurityRecoPt);
+  fBDTRecoCent->Divide(fhighPurityRecoCent);
 } 

@@ -193,7 +193,7 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    factory->AddVariable( "trkEta", 'F' );
    factory->AddVariable( "trkPhi", 'F' );
    factory->AddVariable( "trkPt",  'F' );
-   factory->AddVariable( "hiBin",  'F' );
+   //factory->AddVariable( "hiBin",  'F' );
 
    // You can add so-called "Spectator variables", which are not used in the MVA training,
    // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the
