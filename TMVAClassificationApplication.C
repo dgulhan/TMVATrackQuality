@@ -22,6 +22,7 @@
 #include "TMath.h"
 
 #include "TMVAGui.C"
+#include "HiForest/hiForest.h"
 
 #if not defined(__CINT__) || defined(__MAKECINT__)
 #include "TMVA/Tools.h"
@@ -139,23 +140,23 @@ void TMVAClassificationApplication( TString myMethodList = "" )
 
    // Create a set of variables and declare them to the reader
    // - the variable names MUST corresponds in name and type to those given in the weight file(s) used
-   Float_t ptError, dzError, dxyError, chi2;
-   Float_t trkEta,trkPhi,trkPt, trkNHit, hiBin;
+   Float_t tmva_ptError, tmva_dzError, tmva_dxyError, tmva_chi2;
+   Float_t tmva_trkEta ,tmva_trkPhi,tmva_trkPt, tmva_trkNHit, tmva_hiBin;
 
-   reader->AddVariable( "abs(trkPtError/trkPt)", &ptError );
-   reader->AddVariable( "Chi2DOF := trkChi2/trkNdof", &chi2 );
-   reader->AddVariable( "abs(trkDz1/trkDzError1)",&dzError );
-   reader->AddVariable( "abs(trkDxy1/trkDxyError1)",&dxyError );
-   reader->AddVariable( "trkNHit",&trkNHit );
-   reader->AddVariable( "trkEta", &trkEta );
-   reader->AddVariable( "trkPhi", &trkPhi );
-   reader->AddVariable( "trkPt",  &trkPt );
-   reader->AddVariable( "hiBin",  &hiBin );
+   reader->AddVariable( "abs(trkPtError/trkPt)", &tmva_ptError );
+   reader->AddVariable( "Chi2DOF := trkChi2/trkNdof", &tmva_chi2 );
+   reader->AddVariable( "abs(trkDz1/trkDzError1)",&tmva_dzError );
+   reader->AddVariable( "abs(trkDxy1/trkDxyError1)",&tmva_dxyError );
+   reader->AddVariable( "trkNHit",&tmva_trkNHit );
+   reader->AddVariable( "trkEta", &tmva_trkEta );
+   reader->AddVariable( "trkPhi", &tmva_trkPhi );
+   reader->AddVariable( "trkPt",  &tmva_trkPt );
+   reader->AddVariable( "hiBin",  &tmva_hiBin );
 
    // Spectator variables declared in the training have to be added to the reader, too
-   Float_t highPurity, trkNlayer;
-   reader->AddSpectator( "trkNlayer",   &trkNlayer  );
-   reader->AddSpectator( "highPurity",  &highPurity );
+   Float_t tmva_highPurity, tmva_trkNlayer;
+   reader->AddSpectator( "trkNlayer",   &tmva_trkNlayer  );
+   reader->AddSpectator( "highPurity",  &tmva_highPurity );
 
    //Float_t Category_cat1, Category_cat2, Category_cat3;
    /*if (Use["Category"]){
@@ -169,62 +170,41 @@ void TMVAClassificationApplication( TString myMethodList = "" )
 
    reader->BookMVA( "BDT", "weights/TMVAClassification_BDT.weights.xml");
 
-   TFile *input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root");
+   HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
 
-   std::cout << "--- TMVAClassificationApplication       : Using input file: " << input->GetName() << std::endl;
-   
-   TTree *track     = (TTree*)input->Get("anaTrack/trackTree");
-   TTree *fhi = (TTree*) input->Get("hiEvtAnalyzer/HiTree");
-   track->AddFriend(fhi);
-
-   //composite variables
-   float trkPtError, trkChi2, trkNdof, trkDz1, trkDzError1, trkDxy1, trkDxyError1;
-   track->SetBranchAddress("trkPtError", &trkPtError);
-   track->SetBranchAddress("trkChi2", &trkChi2);
-   track->SetBranchAddress("trkNdof", &trkNdof);
-   track->SetBranchAddress("trkDz1", &trkDz1);
-   track->SetBranchAddress("trkDzError1", &trkDzError1);
-   track->SetBranchAddress("trkDxy1", &trkDxy1);
-   track->SetBranchAddress("trkDxyError1", &trkDxyError1); 
-
-   //simple variables
-   int trkNHit_I, trkNlayer_I, hiBin_I;
-   bool highPurity_B;
-   track->SetBranchAddress("hiBin", &hiBin_I);
-   track->SetBranchAddress("trkNHit", &trkNHit_I);
-   track->SetBranchAddress("trkEta", &trkEta);
-   track->SetBranchAddress("trkPhi", &trkPhi);
-   track->SetBranchAddress("trkPt", &trkPt);
-   track->SetBranchAddress("trkNlayer", &trkNlayer_I);
-   track->SetBranchAddress("highPurity", &highPurity_B);
-
-   //Other variables
-   float trkAlgo;
-   bool  trkFake; 
-   track->SetBranchAddress("trkFake", &trkFake);
-   track->SetBranchAddress("trkAlgo", &trkAlgo);
+   h->LoadNoTrees();
+   h->hasEvtTree = true;
+   h->hasTrackTree = true;   
 
    //event loop
+   int nEntries = h->GetEntries();
    for(int i = 1; i < 3; i++)
    {
-     track->GetEntry(i);  
-   
+     h->GetEntry(i);
+     //hiBin for TMVA  
+     tmva_hiBin = h->evt.hiBin;
+     
      //track loop
      for(int j=1; j<30; j++)     
      { 
-       ptError  = TMath::Abs(trkPtError/trkPt);  
-       dzError  = TMath::Abs(trkDz1/trkDzError1);
-       dxyError = TMath::Abs(trkDxy1/trkDxyError1);
-       chi2     = trkChi2/trkNdof;
+       //composite variables for TMVA
+       tmva_ptError  = TMath::Abs(h->track.trkPtError[j]/h->track.trkPt[j]);  
+       tmva_dzError  = TMath::Abs(h->track.trkDz1[j]/h->track.trkDzError1[j]);
+       tmva_dxyError = TMath::Abs(h->track.trkDxy1[j]/h->track.trkDxyError1[j]);
+       tmva_chi2     = h->track.trkChi2[j]/h->track.trkNdof[j];
 
-       //type casts
-       trkNHit = (float) trkNHit_I;
-       trkNlayer = (float) trkNlayer_I;
-       hiBin = (float) hiBin_I;
-       highPurity = (float) highPurity_B;
+       //simple variables for TMVA
+       tmva_trkEta = h->track.trkEta[j];
+       tmva_trkPhi = h->track.trkPhi[j]; 
+       tmva_trkPt  = h->track.trkPt[j];
+       tmva_trkNHit = h->track.trkNHit[j];
+
+       //spectator variables
+       tmva_highPurity = h->track.highPurity[j];
+       tmva_trkNlayer  = h->track.trkNlayer[j];
 
        double tmvaResponse =  reader->EvaluateMVA("BDT");
-       std::cout << i << "" << j << "" << tmvaResponse << "" << highPurity << std::endl;
+       std::cout << tmvaResponse << " " << tmva_highPurity << " " << 1-h->track.trkFake[j] << std::endl;
      }
    }
 
