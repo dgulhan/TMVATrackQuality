@@ -166,6 +166,8 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    reader->BookMVA( "BDT6", "weights/TMVAClassification_BDT6.weights.xml"); 
 
    HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
+   //large stats sample
+   //HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_TuneZ2_Unquenched_Hydjet1p8_2760GeV_merged/HiForest_PYTHIA_HYDJET_pthat80_Track9_Jet30_matchEqR_merged_forest_0.root","forest",cPbPb,1);
 
    h->LoadNoTrees();
    h->hasEvtTree = true;
@@ -184,10 +186,11 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    TH1D * fBDTRecoCent = new TH1D("fBDTRecoCent","",50,0,200); 
 
    //event loop
-   int nEntries = h->GetEntries();
-   for(int i = 0; i < nEntries; i++)
+   //int nEntries = h->GetEntries();
+   for(int i = 0; i < 1000; i++)
    {
      h->GetEntry(i);
+     if(i%1000 == 0) std::cout << i << std::endl;
      //hiBin for TMVA  
      //tmva_hiBin = h->evt.hiBin; 
 
@@ -221,12 +224,18 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
 
        double tmvaResponse =  reader->EvaluateMVA(Form("BDT%d",algo));
        if(i == 0 and j ==0) std::cout << Form("Using BDT%d", algo) << std::endl;
-       if(!(h->track.trkFake[j]) && tmvaResponse > -0.01)
+       
+       double TMVA_Cut = 0; 
+       if(algo == 4) TMVA_Cut=0;
+       if(algo == 4) TMVA_Cut=-0.03;
+       if(algo == 4) TMVA_Cut=0.02;
+
+       if(!(h->track.trkFake[j]) && tmvaResponse > TMVA_Cut)
        {
          eBDTRecoPt->Fill(h->track.trkPt[j]);
          eBDTRecoCent->Fill(h->evt.hiBin);
        }
-       if(h->track.trkFake[j] && tmvaResponse > -0.01)
+       if(h->track.trkFake[j] && tmvaResponse > TMVA_Cut)
        {
          fBDTRecoPt->Fill(h->track.trkPt[j]);
          fBDTRecoCent->Fill(h->evt.hiBin);
