@@ -174,10 +174,10 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    h->hasEvtTree = true;
    h->hasTrackTree = true;   
 
-   TH1::SetDefaultSumw2;
+   TH1::SetDefaultSumw2();
  
    double upperBound = 5;
-   if(algo == 5) upperBound = 2.5;
+   if(algo == 5) upperBound = 1.0;
 
    TH1D * ehighPurityRecoPt = new TH1D("ehighPurityRecoPt","",50,0,upperBound);
    TH1D * eBDTRecoPt = new TH1D("eBDTRecoPt","",50,0,upperBound);
