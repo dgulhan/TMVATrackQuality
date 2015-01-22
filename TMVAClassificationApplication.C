@@ -24,6 +24,7 @@
 
 #include "TMVAGui.C"
 #include "HiForest/hiForest.h"
+#include "makeEvalPlots.h"
 
 #if not defined(__CINT__) || defined(__MAKECINT__)
 #include "TMVA/Tools.h"
@@ -175,13 +176,16 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
 
    TH1::SetDefaultSumw2;
  
-   TH1D * ehighPurityRecoPt = new TH1D("ehighPurityRecoPt","",50,0,5);
-   TH1D * eBDTRecoPt = new TH1D("eBDTRecoPt","",50,0,5);
+   double upperBound = 5;
+   if(algo == 5) upperBound = 2.5;
+
+   TH1D * ehighPurityRecoPt = new TH1D("ehighPurityRecoPt","",50,0,upperBound);
+   TH1D * eBDTRecoPt = new TH1D("eBDTRecoPt","",50,0,upperBound);
    TH1D * ehighPurityRecoCent = new TH1D("ehighPurityRecoCent","",50,0,200);
    TH1D * eBDTRecoCent = new TH1D("eBDTRecoCent","",50,0,200);
 
-   TH1D * fhighPurityRecoPt = new TH1D("fhighPurityRecoPt","",50,0,5);
-   TH1D * fBDTRecoPt = new TH1D("fBDTRecoPt","",50,0,5);
+   TH1D * fhighPurityRecoPt = new TH1D("fhighPurityRecoPt","",50,0,upperBound);
+   TH1D * fBDTRecoPt = new TH1D("fBDTRecoPt","",50,0,upperBound);
    TH1D * fhighPurityRecoCent = new TH1D("fhighPurityRecoCent","",50,0,200);
    TH1D * fBDTRecoCent = new TH1D("fBDTRecoCent","",50,0,200); 
 
@@ -248,4 +252,6 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
 
   fBDTRecoPt->Divide(fhighPurityRecoPt);
   fBDTRecoCent->Divide(fhighPurityRecoCent);
+
+  makeEvalPlots(eBDTRecoPt, fBDTRecoPt, (int) algo);
 } 
