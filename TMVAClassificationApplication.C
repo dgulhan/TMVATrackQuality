@@ -166,9 +166,9 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    reader->BookMVA( "BDT5", "weights/TMVAClassification_BDT5.weights.xml");
    reader->BookMVA( "BDT6", "weights/TMVAClassification_BDT6.weights.xml"); 
 
-   //HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
+   HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
    //large stats sample
-   HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_TuneZ2_Unquenched_Hydjet1p8_2760GeV_merged/HiForest_PYTHIA_HYDJET_pthat80_Track9_Jet30_matchEqR_merged_forest_0.root","forest",cPbPb,1);
+  // HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_TuneZ2_Unquenched_Hydjet1p8_2760GeV_merged/HiForest_PYTHIA_HYDJET_pthat80_Track9_Jet30_matchEqR_merged_forest_0.root","forest",cPbPb,1);
 
    h->LoadNoTrees();
    h->hasEvtTree = true;
@@ -191,7 +191,7 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
 
    //event loop
    //int nEntries = h->GetEntries();
-   for(int i = 0; i < 20000; i++)
+   for(int i = 0; i < 1000; i++)
    {
      h->GetEntry(i);
      if(i%1000 == 0) std::cout << i << std::endl;
