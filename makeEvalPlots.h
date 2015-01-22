@@ -19,6 +19,8 @@ void makeEvalPlots(TH1D* eff, TH1D* fake, int algo)
   c->cd(0)->SetFillColor(0);
   eff->SetMinimum(0);
   eff->SetMaximum(1.5);
+  if(algo==6) eff->SetMaximum(5);
+
   eff->SetMarkerStyle(20);
   eff->SetMarkerSize(0.8);
   eff->SetMarkerColor(kBlack);
@@ -37,7 +39,7 @@ void makeEvalPlots(TH1D* eff, TH1D* fake, int algo)
   fake->Draw("p e same");
 
   TLegend * leg = new TLegend(0.15,0.7,0.4,0.8);
-  leg->AddEntry((TObject*)0, Form("nTrkAlgo=%d",algo),"");
+  leg->AddEntry((TObject*)0, Form("trkAlgo=%d",algo),"");
   leg->AddEntry(eff,"Efficiency","pe");
   leg->AddEntry(fake,"Fake","pe");
   leg->Draw("same");
