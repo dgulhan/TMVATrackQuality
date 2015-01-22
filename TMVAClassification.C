@@ -120,8 +120,8 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    Use["SVM"]             = 0;//1
    // 
    // --- Boosted Decision Trees
-   Use["BDT"]             = 1; //1 uses Adaptive Boost
-   Use["BDTG"]            = 0; // uses Gradient Boost
+   Use["BDT"]             = 0; //1 uses Adaptive Boost
+   Use["BDTG"]            = 1; // uses Gradient Boost
    Use["BDTB"]            = 0; // uses Bagging
    Use["BDTD"]            = 0; // decorrelation + Adaptive Boost
    Use["BDTF"]            = 0; // allow usage of fisher discriminant for node splitting 
@@ -228,7 +228,9 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    // You can add an arbitrary number of signal or background trees
    factory->AddSignalTree    ( signal,     signalWeight     );
    factory->AddBackgroundTree( background, backgroundWeight );
-   
+   //event by event weights
+   //factory->SetWeightExpression( "1/nTrk" );   
+
    // To give different trees for training and testing, do as follows:
    //    factory->AddSignalTree( signalTrainingTree, signalTrainWeight, "Training" );
    //    factory->AddSignalTree( signalTestTree,     signalTestWeight,  "Test" );
@@ -445,21 +447,21 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
       factory->BookMethod( TMVA::Types::kSVM, "SVM", "Gamma=0.25:Tol=0.001:VarTransform=Norm" );
 
    // Boosted Decision Trees
-   if (Use["BDTG"]) // Gradient Boost
-      factory->BookMethod( TMVA::Types::kBDT, "BDTG",
-                           "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=2" );
+   if (Use["BDT"]) // adaptive Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDT",
+                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20");
 
-   if (Use["BDT"] && algo==4)  // Adaptive Boost
-      factory->BookMethod( TMVA::Types::kBDT, "BDT4",
-                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+   if (Use["BDTG"] && algo==4)  // Gradient Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDTG4",
+                           "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3");
 
-   if (Use["BDT"] && algo==5)  // Adaptive Boost
-      factory->BookMethod( TMVA::Types::kBDT, "BDT5",
-                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+   if (Use["BDTG"] && algo==5)  // Gradient Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDTG5",
+                           "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3");
 
-   if (Use["BDT"] && algo==6)  // Adaptive Boost
-      factory->BookMethod( TMVA::Types::kBDT, "BDT6",
-                           "!H:!V:NTrees=850:MinNodeSize=2.5%:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+   if (Use["BDTG"] && algo==6)  // Gradient Boost
+      factory->BookMethod( TMVA::Types::kBDT, "BDTG6",
+                           "!H:!V:NTrees=1000:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:UseBaggedBoost:BaggedSampleFraction=0.5:nCuts=20:MaxDepth=3");
 
    if (Use["BDTB"]) // Bagging
       factory->BookMethod( TMVA::Types::kBDT, "BDTB",

@@ -96,8 +96,8 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    Use["SVM"]             = 0;
    // 
    // --- Boosted Decision Trees
-   Use["BDT"]             = 1; // uses Adaptive Boost
-   Use["BDTG"]            = 0; // uses Gradient Boost
+   Use["BDT"]             = 0; // uses Adaptive Boost
+   Use["BDTG"]            = 1; // uses Gradient Boost
    Use["BDTB"]            = 0; // uses Bagging
    Use["BDTD"]            = 0; // decorrelation + Adaptive Boost
    // 
@@ -162,9 +162,9 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
 
    // --- Book the MVA methods
 
-   reader->BookMVA( "BDT4", "weights/TMVAClassification_BDT4.weights.xml");
-   reader->BookMVA( "BDT5", "weights/TMVAClassification_BDT5.weights.xml");
-   reader->BookMVA( "BDT6", "weights/TMVAClassification_BDT6.weights.xml"); 
+   reader->BookMVA( "BDTG4", "weights/TMVAClassification_BDTG4.weights.xml");
+   reader->BookMVA( "BDTG5", "weights/TMVAClassification_BDTG5.weights.xml");
+   reader->BookMVA( "BDTG6", "weights/TMVAClassification_BDTG6.weights.xml"); 
 
    HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
    //large stats sample
@@ -226,12 +226,11 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
          fhighPurityRecoCent->Fill(h->evt.hiBin);
        }
 
-       double tmvaResponse =  reader->EvaluateMVA(Form("BDT%d",algo));
-       if(i == 0 and j ==0) std::cout << Form("Using BDT%d", algo) << std::endl;
+       double tmvaResponse =  reader->EvaluateMVA(Form("BDTG%d",algo)); 
        
        double TMVA_Cut = 0; 
        if(algo == 4) TMVA_Cut=0.02;
-       if(algo == 5) TMVA_Cut=0.02;
+       if(algo == 5) TMVA_Cut=0.07;
        if(algo == 6) TMVA_Cut=0.02;
 
        if(!(h->track.trkFake[j]) && tmvaResponse > TMVA_Cut)
