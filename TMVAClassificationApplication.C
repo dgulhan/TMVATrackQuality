@@ -34,7 +34,7 @@
 
 using namespace TMVA;
 
-void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 ) 
+void TMVAClassificationApplication( TString myMethodList = "", int algo = 4, bool isMB=false ) 
 {   
 #ifdef __CINT__
    gROOT->ProcessLine( ".O0" ); // turn off optimization in CINT
@@ -156,15 +156,24 @@ void TMVAClassificationApplication( TString myMethodList = "", int algo = 4 )
    //reader->AddVariable( "hiBin",  &tmva_hiBin );
 
    // Spectator variables declared in the training have to be added to the reader, too
-   Float_t tmva_highPurity, tmva_trkNlayer;
+   Float_t tmva_highPurity, tmva_trkNlayer, tmva_trkPtError, tmva_trkChi2, tmva_trkNdof, tmva_trkDz1, tmva_trkDzError1, tmva_trkDxy1, tmva_trkDxyError1;
+   reader->AddSpectator( "hiBin", &tmva_hiBin);
    reader->AddSpectator( "trkNlayer",   &tmva_trkNlayer  );
    reader->AddSpectator( "highPurity",  &tmva_highPurity );
+   reader->AddSpectator( "trkPtError", &tmva_trkPtError);
+   reader->AddSpectator( "trkChi2", &tmva_trkChi2);
+   reader->AddSpectator( "trkNdof", &tmva_trkNdof);
+   reader->AddSpectator( "trkDz1" , &tmva_trkDz1);
+   reader->AddSpectator( "trkDzError1" , &tmva_trkDzError1);
+   reader->AddSpectator( "trkDxy1", &tmva_trkDxy1);
+   reader->AddSpectator( "trkDxyError1", &tmva_trkDxyError1);
+
 
    // --- Book the MVA methods
 
    reader->BookMVA( "BDTG4", "weights/TMVAClassification_BDTG4.weights.xml");
    reader->BookMVA( "BDTG5", "weights/TMVAClassification_BDTG5.weights.xml");
-   reader->BookMVA( "BDTG6", "weights/TMVAClassification_BDTG6.weights.xml"); 
+   reader->BookMVA( "BDTG6", "weights/TMVAClassification_BDTG6.weights.xml");
 
    HiForest * h = new HiForest("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_330_1_bb2.root","forest",cPbPb,1);
    //large stats sample

@@ -48,7 +48,7 @@
 #include "TMVA/Tools.h"
 #endif
 
-void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
+void TMVAClassification( TString myMethodList = "BDTG",  int algo=0, bool isMB = 0)
 {
    // The explicit loading of the shared libTMVA is done in TMVAlogon.C, defined in .rootrc
    // if you use your private .rootrc, or run from a different directory, please copy the
@@ -198,8 +198,16 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    // You can add so-called "Spectator variables", which are not used in the MVA training,
    // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the
    // input variables, the response values of all trained MVAs, and the spectator variables 
+   factory->AddSpectator( "hiBin", 'F');
    factory->AddSpectator( "trkNlayer",'F' );
    factory->AddSpectator( "highPurity",'F' );
+   factory->AddSpectator( "trkPtError", 'F');
+   factory->AddSpectator( "trkChi2", 'F');
+   factory->AddSpectator( "trkNdof", 'F');
+   factory->AddSpectator( "trkDz1" , 'F');
+   factory->AddSpectator( "trkDzError1" , 'F');
+   factory->AddSpectator( "trkDxy1", 'F');
+   factory->AddSpectator( "trkDxyError1", 'F');
 
    // Read training and test data
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
@@ -207,10 +215,11 @@ void TMVAClassification( TString myMethodList = "CutsGA",  int algo=0 )
    
    if (gSystem->AccessPathName( fname ))  // file does not exist in local directory
       gSystem->Exec("wget http://root.cern.ch/files/tmva_class_example.root");
- 
-// TFile *input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_PyquenUnquenched_pthat80_73X_complete_v2/HiForest_100_1_dBY.root");
-  TFile *input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_150_1_VnG.root");
 
+   TFile *input; 
+// TFile *input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_PyquenUnquenched_pthat80_73X_complete_v2/HiForest_100_1_dBY.root");
+  if(isMB == 0) input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_150_1_VnG.root");
+  else input = TFile::Open("/mnt/hadoop/cms/store/user/ginnocen/Hydjet1p8_TuneDrum_Quenched_MinBias_2760GeV/HiMinBias_Forest_26June2014/d9ab4aca1923b3220eacf8ee0d550950/HiForest_180_2_OMl.root");
    std::cout << "--- TMVAClassification       : Using input file: " << input->GetName() << std::endl;
    
    // --- Register the training and test trees
