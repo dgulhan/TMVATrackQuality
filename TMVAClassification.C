@@ -35,6 +35,7 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TMath.h"
 #include "TString.h"
 #include "TObjString.h"
 #include "TSystem.h"
@@ -185,29 +186,32 @@ void TMVAClassification( TString myMethodList = "BDTG",  int algo=0, bool isMB =
    // factory->AddVariable( "var3",                "Variable 3", "units", 'F' );
    // factory->AddVariable( "var4",                "Variable 4", "units", 'F' );
 
-   factory->AddVariable( "abs(trkPtError/trkPt)", 'F' );
-   factory->AddVariable( "Chi2DOF := trkChi2/trkNdof", 'F' );
-   factory->AddVariable( "abs(trkDz1/trkDzError1)",'F' );
-   factory->AddVariable( "abs(trkDxy1/trkDxyError1)",'F' );
+   //factory->AddVariable("trkLostMidFrac",'F');
+   factory->AddVariable("trkMinLost",'F');
    factory->AddVariable( "trkNHit",'F' );
+   factory->AddVariable( "relPtErr := TMath::Abs(trkPtError/trkPt)", 'F' );
+   factory->AddVariable( "sigDzErr := trkDz1/trkDzError1" , 'F' );
+   factory->AddVariable( "sigDxyErr:= trkDxy1/trkDxyError1", 'F' );
    factory->AddVariable( "trkEta", 'F' );
-   factory->AddVariable( "trkPhi", 'F' );
-   factory->AddVariable( "trkPt",  'F' );
-   //factory->AddVariable( "hiBin",  'F' );
+   factory->AddVariable( "Chi2perDOF := trkChi2/trkNdof", 'F' ); 
+   factory->AddVariable( "trkNlayersLost",'F');
+   factory->AddVariable( "trkNlayer3D",'F');
+   factory->AddVariable( "trkNlayer",'F');
+   factory->AddVariable( "trkNdof",'F');
+   if(algo==5) factory->AddVariable( "trkPt", 'F' );
 
    // You can add so-called "Spectator variables", which are not used in the MVA training,
    // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the
    // input variables, the response values of all trained MVAs, and the spectator variables 
-   factory->AddSpectator( "hiBin", 'F');
-   factory->AddSpectator( "trkNlayer",'F' );
+   
    factory->AddSpectator( "highPurity",'F' );
    factory->AddSpectator( "trkPtError", 'F');
-   factory->AddSpectator( "trkChi2", 'F');
-   factory->AddSpectator( "trkNdof", 'F');
+   factory->AddSpectator( "trkChi2", 'F'); 
    factory->AddSpectator( "trkDz1" , 'F');
    factory->AddSpectator( "trkDzError1" , 'F');
    factory->AddSpectator( "trkDxy1", 'F');
    factory->AddSpectator( "trkDxyError1", 'F');
+   factory->AddSpectator( "trkFake", 'F');
 
    // Read training and test data
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
@@ -216,27 +220,59 @@ void TMVAClassification( TString myMethodList = "BDTG",  int algo=0, bool isMB =
    if (gSystem->AccessPathName( fname ))  // file does not exist in local directory
       gSystem->Exec("wget http://root.cern.ch/files/tmva_class_example.root");
 
-   TFile *input; 
+   TFile *input[4];
 // TFile *input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_PyquenUnquenched_pthat80_73X_complete_v2/HiForest_100_1_dBY.root");
-  if(isMB == 0) input = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/PYTHIA_HYDJET_Track9_Jet30_Pyquen_DiJet_Pt80_TuneZ2_Unquenched_Hydjet1p8_2760GeV/hiForest_DijetpT370_Hydjet1p8_STARTHI53_LV1_v15_150_1_VnG.root");
-  else input = TFile::Open("/mnt/hadoop/cms/store/user/ginnocen/Hydjet1p8_TuneDrum_Quenched_MinBias_2760GeV/HiMinBias_Forest_26June2014/d9ab4aca1923b3220eacf8ee0d550950/HiForest_180_2_OMl.root");
-   std::cout << "--- TMVAClassification       : Using input file: " << input->GetName() << std::endl;
+  if(isMB == 0 && algo!=6)
+  {
+    input[0] = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_Dijet_pthat80_740pre6_BS/HiForest_100_1_C7l.root");
+    input[1] = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_Dijet_pthat80_740pre6_BS/HiForest_101_1_MtA.root");
+    input[2] = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_Dijet_pthat80_740pre6_BS/HiForest_103_1_RG9.root");
+    input[3] = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_Dijet_pthat80_740pre6_BS/HiForest_104_1_L0g.root");
+  }
+  if(isMB == 0 && algo==6) input[0] = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_Dijet_pthat80_740pre6_BS_merged/HiForest_Dijet_pthat80_740pre6_BS.root");
+
+//  else input = TFile::Open("/mnt/hadoop/cms/store/user/ginnocen/Hydjet1p8_TuneDrum_Quenched_MinBias_2760GeV/HiMinBias_Forest_26June2014/d9ab4aca1923b3220eacf8ee0d550950/HiForest_180_2_OMl.root");
+   //std::cout << "--- TMVAClassification       : Using input file: " << input->GetName() << std::endl;
    
    // --- Register the training and test trees
 
-   TTree *signal     = (TTree*)input->Get("anaTrack/trackTree");
-   TTree *fhi = (TTree*) input->Get("hiEvtAnalyzer/HiTree");
-   signal->AddFriend(fhi);
-   TTree *background = (TTree*)input->Get("anaTrack/trackTree");
-   background->AddFriend(fhi);
+   TTree *signal[4];
+   TTree *background[4];
+   int maxTrees = 4;
+   if(algo == 6) maxTrees = 1;
+   for(int i = 0; i<maxTrees; i++)
+   {
+     signal[i] = (TTree*)input[i]->Get("anaTrack/trackTree");
+   //TTree *fhi = (TTree*) input->Get("hiEvtAnalyzer/HiTree");
+   //signal->AddFriend(fhi);
+   
+     background[i] = (TTree*)input[i]->Get("anaTrack/trackTree");
+   }
+   //background->AddFriend(fhi);
    
    // global event weights per tree (see below for setting event-wise weights)
    Double_t signalWeight     = 1.0;
    Double_t backgroundWeight = 1.0;
    
    // You can add an arbitrary number of signal or background trees
-   factory->AddSignalTree    ( signal,     signalWeight     );
-   factory->AddBackgroundTree( background, backgroundWeight );
+   if(algo != 6)
+   {
+     for(int i = 0; i<2; i++)
+     {
+       factory->AddSignalTree    ( signal[i],     signalWeight,"Training" );
+       factory->AddBackgroundTree( background[i], backgroundWeight,"Training" );
+     }
+     for(int i = 2; i<4; i++)
+     {
+       factory->AddSignalTree    ( signal[i],     signalWeight, "Test"  );
+       factory->AddBackgroundTree( background[i], backgroundWeight, "Test"  );
+     }
+   }
+   if(algo == 6)
+   {
+     factory->AddSignalTree    ( signal[0],     signalWeight );
+     factory->AddBackgroundTree( background[0], backgroundWeight );
+   }
    //event by event weights
    //factory->SetWeightExpression( "1/nTrk" );   
 
